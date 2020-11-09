@@ -1,6 +1,6 @@
 import tokenTypes from './tokenTypes';
 
-const INLINE_MAX_LENGTH = 50;
+const INLINE_MAX_LENGTH = process.env.INLINE_MAX_LENGTH || 80;
 
 /**
  * Bookkeeper for inline blocks.
