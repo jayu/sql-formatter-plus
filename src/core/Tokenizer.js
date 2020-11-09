@@ -22,6 +22,8 @@ export default class Tokenizer {
     this.NUMBER_REGEX = /^((-\s*)?[0-9]+(\.[0-9]+)?|0x[0-9a-fA-F]+|0b[01]+)\b/u;
     this.OPERATOR_REGEX = /^(!=|<>|==|<=|>=|!<|!>|\|\||::|->>|->|~~\*|~~|!~~\*|!~~|~\*|!~\*|!~|:=|.)/u;
 
+    this.VALUE_INTERPOLATION_REGEX = /^\$\{(.*?)\}/u;
+
     this.BLOCK_COMMENT_REGEX = /^(\/\*[^]*?(?:\*\/|$))/u;
     this.LINE_COMMENT_REGEX = this.createLineCommentRegex(cfg.lineCommentTypes);
 
@@ -148,6 +150,7 @@ export default class Tokenizer {
   getNextToken(input, previousToken) {
     return (
       this.getWhitespaceToken(input) ||
+      this.getValueInterpolationToken(input) ||
       this.getCommentToken(input) ||
       this.getStringToken(input) ||
       this.getOpenParenToken(input) ||
@@ -185,6 +188,14 @@ export default class Tokenizer {
       input,
       type: tokenTypes.BLOCK_COMMENT,
       regex: this.BLOCK_COMMENT_REGEX
+    });
+  }
+
+  getValueInterpolationToken(input) {
+    return this.getTokenOnZeroMatch({
+      input,
+      type: tokenTypes.VALUE_INTERPOLATION,
+      regex: this.VALUE_INTERPOLATION_REGEX
     });
   }
 
@@ -329,10 +340,28 @@ export default class Tokenizer {
   }
 
   getTokenOnFirstMatch({ input, type, regex }) {
-    const matches = input.match(regex);
+    try {
+      const matches = input.match(regex);
+      if (matches) {
+        return { type, value: matches[1] };
+      }
+    } catch (e) {
+      console.log(e.message);
+      console.log('INPUT', input);
+      throw e;
+    }
+  }
 
-    if (matches) {
-      return { type, value: matches[1] };
+  getTokenOnZeroMatch({ input, type, regex }) {
+    try {
+      const matches = input.match(regex);
+      if (matches) {
+        return { type, value: matches[0] };
+      }
+    } catch (e) {
+      console.log(e.message);
+      console.log('INPUT', input);
+      throw e;
     }
   }
 }
