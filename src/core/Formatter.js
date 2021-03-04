@@ -46,7 +46,9 @@ export default class Formatter {
 
     this.tokens.forEach((token, index) => {
       this.index = index;
-
+      if (token.value === '&') {
+        console.log(token);
+      }
       if (this.tokenOverride) token = this.tokenOverride(token, this.previousReservedWord) || token;
 
       if (token.type === tokenTypes.WHITESPACE) {
